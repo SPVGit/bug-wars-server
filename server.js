@@ -1,8 +1,9 @@
 
 
-// ℹ️ Sets the PORT for our app to have access to it. If no env has been set, we hard code it to 5005
+//-------------------PORT SET UP---------------------------------------------------------------------------
 
 require("dotenv").config()
+
 const PORT = process.env.PORT || 5005
 
 const app = require("./app")
@@ -11,7 +12,7 @@ let myServer = app.listen(PORT, () => {
   console.log(`Server listening on http://localhost:${PORT}`)
 })
 
-//-----------------SCOKET.IO SETUP-------------------------------
+//-----------------SCOKET.IO SETUP-------------------------------------------------------------------------
 const { Server } = require("socket.io")
 const io = new Server(myServer, {
   cors: {
@@ -20,7 +21,7 @@ const io = new Server(myServer, {
   },
 })
 
-//-------------------SOCKET EVENTS -----------------------------
+//-------------------SOCKET EVENTS ------------------------------------------------------------------------
 
 const Message = require("./models/Message.model")
 
@@ -36,9 +37,10 @@ io.on("connection", (socket) => { //detects when a user is connected
     console.log("User Joined Room: " + data)
   })
 
+
   socket.on("send_message", (data) => { //receives messages from front end
 
-    const { sender, message, senderName, uniqueId, gameId } = data
+    const { sender, message, senderName, uniqueId, gameId, picture, winMsg } = data
 
     let newMessage = {
       gameId: gameId,
@@ -46,15 +48,18 @@ io.on("connection", (socket) => { //detects when a user is connected
       message: message,
       uniqueId: uniqueId,
       senderName: senderName,
+      picture:picture,
+      winMsg:winMsg
     }
-
     // Messages received from front end are deconstructed and send to mongo in newMessage objects
 
     Message.create(newMessage).then(async () => {
       
       let allMessages = await Message.find({ gameId: gameId }).populate("sender")
 
-      socket.to(data.gameId).emit("receive_message", allMessages) //messages received are also sent back to front end for display
+      socket.to(data.gameId).emit("receive_message", allMessages) 
+      
+      //messages received are also sent back to front end for display
 
     })
   })

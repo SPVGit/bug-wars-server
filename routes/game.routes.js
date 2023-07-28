@@ -17,7 +17,7 @@ router.post("/game", (req, res, next) => {
         res.status(200).json(found)
       } else {
         //Create a conversation between them if they are chatting for the first time
-        Game.create({ participants }).then((response) => {
+        Game.create({ participants}).then((response) => {
           res.status(200).json(response)
         })
       }
@@ -26,6 +26,15 @@ router.post("/game", (req, res, next) => {
       next(err)
     })
 })
+
+router.delete("/messages/:gameId", (req,res,next)=>{
+  console.log('delete works')
+  const {gameId} = req.params
+  Message.deleteMany({gameId})
+    .then((messages)=>{console.log('messages deleted')})
+    .catch((err)=>next(err))
+})
+
 
 // A route to get all messages of a certain converstaion to display on chat box
 router.get("/messages/:gameId", (req, res, next) => {

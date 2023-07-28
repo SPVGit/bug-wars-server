@@ -1,6 +1,7 @@
 const router = require("express").Router();
 const User = require('../models/User.model')
 
+
 router.get("/home", (req, res, next) => {
   User.find()   
   .then((allUsers) => {

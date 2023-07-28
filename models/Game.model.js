@@ -7,6 +7,7 @@ let GameSchema = new Schema({
       type: Schema.Types.ObjectId,
     },
   ],
+  
 })
 
 

@@ -7,6 +7,7 @@ let MessageSchema = new Schema(
   {
     uniqueId: String,
     senderName: String,
+    picture: String,
     sender: {
       
       type: Schema.Types.ObjectId,
@@ -16,6 +17,7 @@ let MessageSchema = new Schema(
       ref: "game",
       type: Schema.Types.ObjectId,
     },
+    winMsg:String
   },
   {
     timestamps: true,
