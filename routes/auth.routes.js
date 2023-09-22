@@ -5,27 +5,28 @@ const { isAuthenticated } = require("./../middleware/jwt.middleware.js")
 const router = express.Router();
 const saltRounds = 10;
 const User = require("../models/User.model")
-//const router = require("express").Router();
 const Token = require("../models/Token.model");
 const sendEmail = require("../utils/sendEmail");
 const crypto = require("crypto");
-const Joi = require("joi");
-//const User = require("../models/User.model")
-
-//Sign up route
-
+//const Joi = require("joi");
 
 router.post("/passwordresetemail", async (req, res) => {
 
   try {
 
-    const schema = Joi.object({ email: Joi.string().email().required() });
-    const { error } = schema.validate(req.body);
-    if (error) return res.status(400).send(error.details[0].message);
+    //const schema = Joi.object({ email: Joi.string().email().required() });
+    //const { error } = schema.validate(req.body);
+    //if (error) return res.status(400).send(error.details[0].message);
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
+    if (!emailRegex.test(req.body.email)) {
+      res.status(400).json({ message: 'Provide a valid email address.' });
+      return;
+    }
 
     const user = await User.findOne({ email: req.body.email });
     if (!user)
-      return res.status(400).send("user with given email doesn't exist");
+      return res.status(400).json({message:"user with given email doesn't exist"});
 
     let token = await Token.findOne({ userId: user._id });
     if (!token) {
@@ -38,10 +39,9 @@ router.post("/passwordresetemail", async (req, res) => {
     const link = `${process.env.ORIGIN}/passwordresetpage/${user._id}/${token.token}`;
     await sendEmail(user.email, "Password reset", link);
 
-    res.send("password reset link sent to your email account");
+   res.send("password reset link sent to your email account");
 
   } catch (error) {
-    res.send("An error occured");
     console.log(error);
   }
 });
@@ -51,29 +51,29 @@ router.put("/passwordresetpage/:userId/:userToken", async (req, res) => {
   try {
 
     const user = await User.findById(req.params.userId);
-    if (!user) return res.status(400).send("invalid link or expired");
+    if (!user) return res.status(400).json({message:"invalid link or expired"});
 
     const token = await Token.findOne({
       userId: user._id,
       token: req.params.userToken,
     });
-    if (!token) return res.status(400).send("Invalid link or expired");
+    if (!token) return res.status(400).json({message:"Invalid link or expired" });
 
     const { password, confirmPassword } = req.body
 
     if (password === '' || confirmPassword === "") {
-      res.status(400).json({ msg: "Please provide a new password" });
+      res.status(400).json({ message: "Please enter both fields" });
       return;
     }
 
     if (confirmPassword !== password) {
-      res.status(400).json({ msg: "Passwords do not match" });
+      res.status(400).json({ message: "Passwords do not match" });
       return;
     }
 
     const passwordRegex = /(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{6,}/;
     if (!passwordRegex.test(password)) {
-      res.status(400).json({ pwMsg: 'Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.' });
+      res.status(400).json({ message: 'Password must have at least 6 characters and contain at least one number, one lowercase and one uppercase letter.' });
       return;
     }
 
@@ -87,6 +87,7 @@ router.put("/passwordresetpage/:userId/:userToken", async (req, res) => {
     await Token.findOneAndDelete({token:req.params.userToken})
 
     res.send("password reset sucessfully.");
+
   } catch (error) {
     res.send("An error occured");
     console.log(error);
@@ -145,7 +146,7 @@ router.post('/signup', (req, res, next) => {
       // Create a new user in the database
       // We return a pending promise, which allows us to chain another `then` 
 
-      User.create({ email, password: hashedPassword, username, route: 'Regular', picture })
+      User.create({ email, password: hashedPassword, username, route: 'Regular', picture, notifications:[] })
         .then((createdUser) => {
           // Deconstruct the newly created user object to omit the password
           // We should never expose passwords publicly
@@ -223,7 +224,7 @@ router.post('/altsignup', (req, res, next) => {
         // Create a new user in the database
         // We return a pending promise, which allows us to chain another `then` 
 
-        User.create({ email, password: hashedPassword, username, route: route, picture })
+        User.create({ email, password: hashedPassword, username, route: route, picture, notifications:[]})
           .then((createdUser) => {
             // Deconstruct the newly created user object to omit the password
             // We should never expose passwords publicly

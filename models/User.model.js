@@ -23,6 +23,9 @@ const userSchema = new Schema(
     },
     picture:{
       type:String
+    },
+    notifications:{
+      type:[String]
     }
   },
   {
@@ -33,13 +36,6 @@ const userSchema = new Schema(
 
 const User = model("User", userSchema);
 
-const validate = (user) => {
-  const schema = Joi.object({
-      name: Joi.string().required(),
-      email: Joi.string().email().required(),
-      password: Joi.string().required(),
-  });
-  return schema.validate(user);
-};
+
 
 module.exports =User;

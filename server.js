@@ -59,6 +59,7 @@ io.on("connection", (socket) => { //detects when a user is connected
 
       socket.to(data.gameId).emit("receive_message", allMessages) 
       
+      
       //messages received are also sent back to front end for display
 
     })
